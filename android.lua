@@ -15,5 +15,6 @@
 	-- TODO: configure Android debug environment...
 
 	include("vsandroid_vcxproj.lua")
+	include("ndk_gmake.lua")
 
 	return android
