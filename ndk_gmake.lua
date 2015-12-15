@@ -15,22 +15,46 @@
 
 	local gcc = p.tools.gcc
 
-	local platformshortname = 'android'
+	local platformshortname = 'arm'
 	local androidndkpath = os.getenv('NDK')
-	local androidapilevel = ''
+	local androidapilevel = 'android-21'
 	local archstldirname = 'armeabi'
 	local androidapipath = androidndkpath .. '/platforms/' .. androidapilevel
 	local androidincludepath = androidapipath .. '/arch-' .. platformshortname .. '/usr/include'
 	local androidlibpath = androidapipath .. '/arch-' .. platformshortname .. '/usr/lib'
 	local androidstlincludepath = androidndkpath .. '/sources/cxx-stl/llvm-libc++/libcxx/include'
 	local androidstllibpath = androidndkpath .. '/sources/cxx-stl/llvm-libc++/libs/' .. archstldirname
+	local androidsupportincludepath = androidndkpath .. '/sources/android/support/include'
 	
 	local androidstllibs = '-lc++_static'
 	local gcclibpath = 'armeabi'
 
 	local platformtoolsetversion = 'arm-linux-androideabi-4.8'
 	local gcctoolspath = androidndkpath .. '/toolchains/' .. platformtoolsetversion .. '/prebuilt/darwin-x86_64/bin'
-	p.override(gcc, 'gettoolname', function(base, cfg)
+
+	p.override(gcc, 'gettoolname', function(base, cfg, tool)
 		local toolchain_prefix = 'arm-linux-androideabi'
-		return gcctoolspath .. '/' .. toolchain_prefix .. '-g++'
+		return gcctoolspath .. '/' .. toolchain_prefix .. '-' .. 'g++'
+	end)
+
+	p.override(gcc, 'getincludedirs', function(base, cfg, dirs, sysdirs)
+		local includes = base(cfg, dirs, sysdirs)
+		table.insert(includes, '-isystem ' .. androidincludepath)
+		table.insert(includes, '-isystem ' .. androidstlincludepath)
+		table.insert(includes, '-isystem ' .. androidsupportincludepath)
+		return includes
+	end)
+	
+	p.override(gcc, 'getLibraryDirectories', function(base, cfg) 
+		local dir = androidlibpath
+		local flags = base(cfg)
+		table.insert(flags, '-L' .. premake.quoted(dir))
+		table.insert(flags, '-L' .. premake.quoted(androidstllibpath))
+		return flags
+	end)
+
+	p.override(gcc, 'getlinks', function(base, cfg, systemonly) 
+		local result = base(cfg, systemonly)
+		table.insert(result, androidstllibs)
+		return result
 	end)
