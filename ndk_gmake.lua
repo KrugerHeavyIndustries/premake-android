@@ -20,13 +20,14 @@
 	local androidapilevel = 'android-21'
 	local archstldirname = 'armeabi'
 	local androidapipath = androidndkpath .. '/platforms/' .. androidapilevel
-	local androidincludepath = androidapipath .. '/arch-' .. platformshortname .. '/usr/include'
-	local androidlibpath = androidapipath .. '/arch-' .. platformshortname .. '/usr/lib'
+	local androidsysroot = androidapipath .. '/arch-' .. platformshortname
+	local androidincludepath = androidsysroot .. '/usr/include'
+	local androidlibpath = androidsysroot .. '/usr/lib'
 	local androidstlincludepath = androidndkpath .. '/sources/cxx-stl/llvm-libc++/libcxx/include'
 	local androidstllibpath = androidndkpath .. '/sources/cxx-stl/llvm-libc++/libs/' .. archstldirname
 	local androidsupportincludepath = androidndkpath .. '/sources/android/support/include'
 	
-	local androidstllibs = '-lc++_static'
+	local androidstllibs = '-lc++_shared'
 	local gcclibpath = 'armeabi'
 
 	local platformtoolsetversion = 'arm-linux-androideabi-4.8'
@@ -44,6 +45,12 @@
 		table.insert(includes, '-isystem ' .. androidsupportincludepath)
 		return includes
 	end)
+
+	p.override(gcc, 'getldflags', function(base, cfg) 
+		local flags = base(cfg)
+		table.insert(flags, '--sysroot ' .. androidsysroot)
+		return flags
+	end) 
 	
 	p.override(gcc, 'getLibraryDirectories', function(base, cfg) 
 		local dir = androidlibpath
