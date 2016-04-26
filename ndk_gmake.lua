@@ -30,12 +30,10 @@
 	local androidstllibs = '-lc++_shared'
 	local gcclibpath = 'armeabi'
 
-	local platformtoolsetversion = 'arm-linux-androideabi-4.8'
-	local gcctoolspath = androidndkpath .. '/toolchains/' .. platformtoolsetversion .. '/prebuilt/darwin-x86_64/bin'
-
 	p.override(gcc, 'gettoolname', function(base, cfg, tool)
-		local toolchain_prefix = 'arm-linux-androideabi'
-		return gcctoolspath .. '/' .. toolchain_prefix .. '-' .. 'g++'
+		local version = cfg.toolchainversion or '4.9'
+		local platformtoolset = 'arm-linux-androideabi-'
+		return androidndkpath .. '/toolchains/' .. platformtoolset .. version .. '/prebuilt/darwin-x86_64/bin/' .. platformtoolset .. 'g++'
 	end)
 
 	p.override(gcc, 'getincludedirs', function(base, cfg, dirs, sysdirs)
